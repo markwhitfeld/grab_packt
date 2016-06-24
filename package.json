@@ -8,6 +8,10 @@
   "dependencies": {
     "cheerio": "latest",
     "dotenv": "^1.1.0",
-    "request": "latest"
+    "request": "latest",
+    "mkdirp": "latest",
+    "fs": "latest",
+    "process": "latest",
+    "path": "latest"
   }
 }
