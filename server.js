@@ -78,6 +78,11 @@ request(url, function(err, res, body) {
     });
 });
 
+var pushBulletDetails = {
+    apiKey: process.env.PUSHBULLET_API_KEY,
+    target: process.env.PUSHBULLET_TARGET
+};
+
 function createBookDetails(bookTitle, getBookUrl){
     var baseUrl = 'https://www.packtpub.com';
     // getBookUrl sample = '/freelearning-claim/18940/21478'
@@ -103,7 +108,6 @@ function createBookDetails(bookTitle, getBookUrl){
 function downloadBookFiles(bookDetails){    
     var mkdirp = require('mkdirp');
     var fs = require('fs');
-    var process = require('process');
     var pathModule = require('path');
     
     var getDirName = pathModule.dirname;
@@ -114,7 +118,7 @@ function downloadBookFiles(bookDetails){
     downloadBook(bookDetails.pdfUrl, 'pdf', function(path){
         downloadBook(bookDetails.epubUrl, 'epub', function(path){
             downloadBook(bookDetails.mobiUrl, 'mobi', function(path){
-                
+                sendNotification(bookDetails.title);
             });
         });
     });
@@ -144,6 +148,18 @@ function downloadBookFiles(bookDetails){
             return fs.createWriteStream(path);
         }
     }  
+}
 
-
+function sendNotification(noteBody){
+    var PushBullet = require('pushbullet');
+    var pusher = new PushBullet(pushBulletDetails.apiKey);
+        
+    pusher.note(pushBulletDetails.target, 'New eBook Claimed', noteBody, function(error, response) {
+        if (error){
+            console.log('Error Notifying "' + pushBulletDetails.target + '": ' + error);
+            return;
+        }
+        // response is the JSON response from the API 
+        console.log(pushBulletDetails.target + ' notified via PushBullet');
+    });
 }

@@ -12,6 +12,7 @@
     "mkdirp": "latest",
     "fs": "latest",
     "process": "latest",
-    "path": "latest"
+    "path": "latest",
+    "pushbullet": "latest"
   }
 }
