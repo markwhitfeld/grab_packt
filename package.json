@@ -1,6 +1,6 @@
 {
   "name": "@markwhitfeld/grab_packt",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "grabbing a book a day",
   "main": "server.js",
   "repository": "https://github.com/markwhitfeld/grab_packt",
