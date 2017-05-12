@@ -124,7 +124,8 @@ function downloadBookFiles(bookDetails){
     });
 
     function downloadBook(downloadUrl, extension, callback){
-        var outputPath = currentFolder + seperator + 'downloads' + seperator + bookDetails.title + seperator + bookDetails.title + '.' + extension;
+        var downloadPath = process.env.DOWNLOAD_PATH || 'downloads';
+        var outputPath = pathModule.resolve(downloadPath, bookDetails.title, bookDetails.title + '.' + extension);
         downloadFile(downloadUrl, outputPath, callback);
     }
 
@@ -150,11 +151,20 @@ function downloadBookFiles(bookDetails){
     }  
 }
 
-function sendNotification(noteBody){
+function sendNotification(title){
+    var url = require('url');
     var PushBullet = require('pushbullet');
     var pusher = new PushBullet(pushBulletDetails.apiKey);
-        
-    pusher.note(pushBulletDetails.target, 'New eBook Claimed', noteBody, function(error, response) {
+
+    var noteBody = '';
+    var linkDownloadPath = process.env.PUSHBULLET_LINK_DOWNLOAD_PATH;
+    if (linkDownloadPath){
+        linkDownloadPath = linkDownloadPath + title + '/' + title + '.pdf';
+        var downloadUrl = url.parse(linkDownloadPath);
+        noteBody = downloadUrl.href;
+    }
+
+    pusher.note(pushBulletDetails.target, 'New eBook Claimed: ' + title, noteBody, function(error, response) {
         if (error){
             console.log('Error Notifying "' + pushBulletDetails.target + '": ' + error);
             return;
