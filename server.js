@@ -1,4 +1,5 @@
 require('dotenv').load({
+    silent: true,
     path: __dirname + '/.env'
 });
 
@@ -16,6 +17,24 @@ var loginError = 'Sorry, you entered an invalid email address and password combi
 var getBookUrl;
 var bookTitle;
 
+var completedCallback = function(){};
+var completedExecution = false;
+var moduleHandle = {
+    whenCompleted: function(callback){
+        if (typeof callback == "function"){
+            if (completedExecution) callback();
+            else completedCallback = callback;            
+        }
+    }
+};
+
+function done(){
+    completedExecution = true;
+    completedCallback();
+}
+
+module.exports = moduleHandle;
+
 //we need cookies for that, therefore let's turn JAR on
 request = request.defaults({
     jar: true
@@ -26,6 +45,7 @@ request(url, function(err, res, body) {
     if (err) {
         console.error('Request failed');
         console.log('----------- Packt Grab Done --------------');
+        done();        
         return;
     }
 
@@ -49,6 +69,7 @@ request(url, function(err, res, body) {
         if (err) {
             console.error('Login failed');
             console.log('----------- Packt Grab Done --------------');
+            done();        
             return;
         };
         var $ = cheerio.load(body);
@@ -57,6 +78,7 @@ request(url, function(err, res, body) {
             console.error('Login failed, please check your email address and password');
             console.log('Login failed, please check your email address and password');
             console.log('----------- Packt Grab Done --------------');
+            done(); 
             return;
         }
 
@@ -64,6 +86,7 @@ request(url, function(err, res, body) {
             if (err) {
                 console.error('Request Error');
                 console.log('----------- Packt Grab Done --------------');
+                done();
                 return;
             }
 
@@ -98,8 +121,7 @@ function createBookDetails(bookTitle, getBookUrl){
     //'https://www.packtpub.com/code_download/19957' // Can't build this url
     var bookId = getBookUrl.replace('/freelearning-claim/','')
         .replace('/21478','');
-    
-    
+        
     return {
         title: bookTitle,
         claimUrl: baseUrl + getBookUrl,
@@ -143,6 +165,7 @@ function downloadBookFiles(bookDetails){
             .pipe(destination)    
             .on('error', function(error){
                 console.log('Error downloading "' + downloadUrl + '":' + error);
+                done();
             }).on('finish', function() {
                 console.log('Successful Download to: ' + outputPath);
                 callback(outputPath);
@@ -172,9 +195,11 @@ function sendNotification(title){
     pusher.note(pushBulletDetails.target, 'New eBook Claimed: ' + title, noteBody, function(error, response) {
         if (error){
             console.log('Error Notifying "' + pushBulletDetails.target + '": ' + error);
+            done();
             return;
         }
         // response is the JSON response from the API 
         console.log(pushBulletDetails.target + ' notified via PushBullet');
+        done();
     });
 }
