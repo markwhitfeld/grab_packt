@@ -73,7 +73,12 @@ request(url, function(err, res, body) {
             console.log('Claim URL: https://www.packtpub.com' + getBookUrl);
             console.log('----------- Packt Grab Done --------------');
 
-            downloadBookFiles(bookDetails)
+            var skipDownload = process.env.SKIP_DOWNLOAD
+            if (skipDownload) {
+                sendNotification(bookDetails.title)
+            } else {
+                downloadBookFiles(bookDetails)
+            }
         });
     });
 });
